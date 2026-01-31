@@ -23,19 +23,15 @@ jobs:
 
     services:
       mysql:
-        image: mysql:8
+        image: mysql:7.4
         env:
-          MYSQL_DATABASE: job_site
-          MYSQL_USER: root
-          MYSQL_PASSWORD: root
           MYSQL_ROOT_PASSWORD: root
-        ports:
-          - 3306:3306
+          MYSQL_DATABASE: job_site
         options: >-
-          --health-cmd="mysqladmin ping --silent"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
+          --health-cmd="mysqladmin ping -h localhost -uroot -proot"
+          --health-interval=5s
+          --health-timeout=10s
+          --health-retries=10
 
     steps:
       - name: Checkout code
