@@ -15,7 +15,7 @@ jobs:
 
     services:
       mysql:
-        image: mysql:8.0
+        image: mysql:5.7
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: job_site
@@ -43,23 +43,34 @@ jobs:
       - name: Install Node Dependencies
         run: npm install
 
-      - name: Install Composer Dependencies
+      # ⛔ Composer install NO SCRIPTS to avoid package discover (must be BEFORE copying .env)
+      - name: Install composer (no scripts)
         run: composer install --no-interaction --prefer-dist --no-scripts
 
+      # ✔ Create temporary safe env to prevent DB connection
+      - name: Create safe environment file
+        run: |
+          echo "APP_ENV=testing" > .env
+          echo "APP_KEY=" >> .env
+          echo "DB_CONNECTION=sqlite" >> .env
+          echo "DB_DATABASE=:memory:" >> .env
+
+      # ✔ Now MySQL is ready → copy actual CI env
       - name: Copy CI environment file
         run: cp .env.ci .env
 
-      - name: Run Composer Scripts
-        run: composer install --no-interaction
-
-      - name: Generate Key
+      - name: Generate Application Key
         run: php artisan key:generate
 
-      - name: Run Migrations
+      # ✔ Run the artisan scripts now that MySQL is available
+      - name: Run Composer scripts
+        run: composer run-script post-autoload-dump
+
+      - name: Run migrations
         run: php artisan migrate --force
 
       - name: Build Assets
         run: npm run build
 
-      - name: Run Tests
+      - name: Run tests
         run: ./vendor/bin/pest
