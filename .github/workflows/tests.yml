@@ -2,17 +2,9 @@ name: tests
 
 on:
   push:
-    branches:
-      - develop
-      - main
-      - master
-      - workos
+    branches: [develop, main, master, workos]
   pull_request:
-    branches:
-      - develop
-      - main
-      - master
-      - workos
+    branches: [develop, main, master, workos]
 
 jobs:
   ci:
@@ -35,18 +27,13 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Copy CI environment file
-        run: cp .env.ci .env
+        uses: actions/checkout@v3
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
-          tools: composer:v2
-          coverage: xdebug
-          extensions: mbstring, pdo, pdo_mysql, tokenizer, xml
+          extensions: mbstring, pdo, pdo_mysql
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -54,12 +41,18 @@ jobs:
           node-version: '22'
 
       - name: Install Node Dependencies
-        run: npm i
+        run: npm install
 
       - name: Install Composer Dependencies
-        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+        run: composer install --no-interaction --prefer-dist --no-scripts
 
-      - name: Generate Application Key
+      - name: Copy CI environment file
+        run: cp .env.ci .env
+
+      - name: Run Composer Scripts
+        run: composer install --no-interaction
+
+      - name: Generate Key
         run: php artisan key:generate
 
       - name: Run Migrations
