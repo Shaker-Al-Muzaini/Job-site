@@ -43,34 +43,37 @@ jobs:
       - name: Install Node Dependencies
         run: npm install
 
-      # ⛔ Composer install NO SCRIPTS to avoid package discover (must be BEFORE copying .env)
-      - name: Install composer (no scripts)
-        run: composer install --no-interaction --prefer-dist --no-scripts
+      # 1) Install composer WITHOUT scripts (no package discover)
+      - name: Install Composer without scripts
+        run: composer install --no-interaction --no-scripts --prefer-dist
 
-      # ✔ Create temporary safe env to prevent DB connection
-      - name: Create safe environment file
+      # 2) SAFE ENV so Laravel does NOT connect to MySQL yet
+      - name: Create safe env
         run: |
-          echo "APP_ENV=testing" > .env
+          echo "APP_ENV=ci" > .env
           echo "APP_KEY=" >> .env
+          echo "APP_DEBUG=true" >> .env
           echo "DB_CONNECTION=sqlite" >> .env
           echo "DB_DATABASE=:memory:" >> .env
 
-      # ✔ Now MySQL is ready → copy actual CI env
-      - name: Copy CI environment file
-        run: cp .env.ci .env
-
-      - name: Generate Application Key
+      # 3) Generate key WITHOUT touching MySQL
+      - name: Generate key
         run: php artisan key:generate
 
-      # ✔ Run the artisan scripts now that MySQL is available
-      - name: Run Composer scripts
+      # 4) Load CI ENV NOW (MySQL is ready)
+      - name: Load CI environment
+        run: cp .env.ci .env
+
+      # 5) Run composer scripts (package discover)
+      - name: Run composer scripts
         run: composer run-script post-autoload-dump
 
+      # 6) NOW migrate (MySQL ready)
       - name: Run migrations
         run: php artisan migrate --force
 
       - name: Build Assets
         run: npm run build
 
-      - name: Run tests
+      - name: Run Tests
         run: ./vendor/bin/pest
