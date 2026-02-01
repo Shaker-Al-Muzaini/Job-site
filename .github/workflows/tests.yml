@@ -20,7 +20,7 @@ jobs:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: job_site
         options: >-
-          --health-cmd="mysqladmin ping -h localhost -uroot -proot"
+          --health-cmd="mysqladmin ping -uroot -proot"
           --health-interval=5s
           --health-timeout=10s
           --health-retries=10
@@ -43,37 +43,44 @@ jobs:
       - name: Install Node Dependencies
         run: npm install
 
-      # 1) Install composer WITHOUT scripts (no package discover)
       - name: Install Composer without scripts
         run: composer install --no-interaction --no-scripts --prefer-dist
 
-      # 2) SAFE ENV so Laravel does NOT connect to MySQL yet
-      - name: Create safe env
+      # TEMP environment to allow package discovering
+      - name: Create temporary safe env
         run: |
-          echo "APP_ENV=ci" > .env
-          echo "APP_KEY=" >> .env
-          echo "APP_DEBUG=true" >> .env
-          echo "DB_CONNECTION=sqlite" >> .env
-          echo "DB_DATABASE=:memory:" >> .env
+          echo "APP_KEY=" > .env
+          echo "APP_ENV=ci" >> .env
+          echo "DB_CONNECTION=mysql" >> .env
+          echo "DB_HOST=mysql" >> .env
+          echo "DB_PORT=3306" >> .env
+          echo "DB_DATABASE=job_site" >> .env
+          echo "DB_USERNAME=root" >> .env
+          echo "DB_PASSWORD=root" >> .env
 
-      # 3) Generate key WITHOUT touching MySQL
       - name: Generate key
         run: php artisan key:generate
 
-      # 4) Load CI ENV NOW (MySQL is ready)
-      - name: Load CI environment
-        run: cp .env.ci .env
-
-      # 5) Run composer scripts (package discover)
       - name: Run composer scripts
         run: composer run-script post-autoload-dump
 
-      # 6) NOW migrate (MySQL ready)
+      # Load final CI env
+      - name: Copy CI env
+        run: cp .env.ci .env
+
+      # Wait for MySQL
+      - name: Wait for MySQL
+        run: |
+          for i in {1..15}; do
+            mysqladmin ping -h mysql -uroot -proot && break
+            sleep 2
+          done
+
       - name: Run migrations
         run: php artisan migrate --force
 
-      - name: Build Assets
+      - name: Build assets
         run: npm run build
 
-      - name: Run Tests
+      - name: Run tests
         run: ./vendor/bin/pest
