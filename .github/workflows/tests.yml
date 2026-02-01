@@ -9,6 +9,7 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
         php-version: ['8.4', '8.5']
@@ -20,6 +21,7 @@ jobs:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: job_site
         options: >-
+          --default-authentication-plugin=mysql_native_password
           --health-cmd="mysqladmin ping -uroot -proot"
           --health-interval=5s
           --health-timeout=10s
@@ -68,13 +70,18 @@ jobs:
       - name: Copy CI env
         run: cp .env.ci .env
 
-      # Wait for MySQL
+      # Wait for MySQL (guaranteed)
       - name: Wait for MySQL
         run: |
-          for i in {1..15}; do
-            mysqladmin ping -h mysql -uroot -proot && break
+          echo "Waiting for MySQL to be ready..."
+          until mysql -h mysql -uroot -proot -e "SELECT 1"; do
+            echo "MySQL not ready yet..."
             sleep 2
           done
+
+      # Extra wait for stability
+      - name: Extra DB wait
+        run: sleep 5
 
       - name: Run migrations
         run: php artisan migrate --force
