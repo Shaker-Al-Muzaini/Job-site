@@ -1,4 +1,4 @@
-name: tests
+name: CI Tests
 
 on:
   push:
@@ -7,100 +7,75 @@ on:
     branches: [develop, main, master, workos]
 
 jobs:
-  ci:
+  laravel-tests:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        php-version: ['8.4', '8.5']
 
     services:
       mysql:
         image: mysql:8.0
+        ports:
+          - 3306:3306
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: job_site
         options: >-
-          --health-cmd="mysqladmin ping -uroot -proot"
+          --health-cmd="mysqladmin ping -uroot -proot --silent"
           --health-interval=5s
-          --health-timeout=10s
+          --health-timeout=5s
           --health-retries=10
 
     steps:
-      - name: Checkout code
+
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php-version }}
-          extensions: mbstring, pdo, pdo_mysql
+          php-version: 8.2
+          extensions: mbstring, pdo, pdo_mysql, intl
+          coverage: none
 
-      - name: Setup Node
+      - name: Setup Composer dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: 20
 
-      - name: Install Node Dependencies
+      - name: Install NPM dependencies
         run: npm install
 
-      - name: Install Composer without scripts
-        run: composer install --no-interaction --no-scripts --prefer-dist
+      - name: Build Frontend assets
+        run: npm run build
 
+      - name: Copy CI environment
+        run: cp .env.example .env
 
-      # --------------------------
-      # TEMP ENV (prevents early DB connection)
-      # --------------------------
-      - name: Create temporary env
+      - name: Configure Laravel environment
         run: |
-          echo "APP_KEY=" > .env
-          echo "APP_ENV=ci" >> .env
-          echo "DB_CONNECTION=mysql" >> .env
-          echo "DB_HOST=127.0.0.1" >> .env
-          echo "DB_PORT=3306" >> .env
-          echo "DB_DATABASE=" >> .env
-          echo "DB_USERNAME=" >> .env
-          echo "DB_PASSWORD=" >> .env
+          php artisan key:generate
+          sed -i "s/DB_CONNECTION=.*/DB_CONNECTION=mysql/" .env
+          sed -i "s/DB_HOST=.*/DB_HOST=mysql/" .env
+          sed -i "s/DB_PORT=.*/DB_PORT=3306/" .env
+          sed -i "s/DB_DATABASE=.*/DB_DATABASE=job_site/" .env
+          sed -i "s/DB_USERNAME=.*/DB_USERNAME=root/" .env
+          sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=root/" .env
 
-
-      # --------------------------
-      # Wait a bit before Laravel auto-discovers packages
-      # --------------------------
-      - name: Initial wait to avoid early DB calls
-        run: sleep 8
-
-
-      - name: Generate key
-        run: php artisan key:generate
-
-
-      - name: Run composer scripts
-        run: composer run-script post-autoload-dump
-
-
-      # --------------------------
-      # Load the real CI environment
-      # --------------------------
-      - name: Copy CI env
-        run: cp .env.ci .env
-
-
-      # --------------------------
-      # NOW wait for MySQL (real connection)
-      # --------------------------
-      - name: Wait for MySQL
+      - name: Wait for MySQL to be ready
         run: |
-          until mysql -h mysql -uroot -proot -e "SELECT 1"; do
+          for i in {1..15}; do
+            if mysql -h mysql -uroot -proot -e "SELECT 1" &> /dev/null; then
+              echo "MySQL is ready!"
+              break
+            fi
             echo "Waiting for MySQL..."
             sleep 2
           done
 
-
-      - name: Run migrations
+      - name: Run Laravel migrations
         run: php artisan migrate --force
 
-      - name: Build assets
-        run: npm run build
-
-      - name: Run tests
-        run: ./vendor/bin/pest
+      - name: Run Tests
+        run: php artisan test
