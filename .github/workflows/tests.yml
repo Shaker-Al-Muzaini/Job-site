@@ -25,11 +25,9 @@ jobs:
           --health-retries=10
 
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # ============== الخطوة الأهم ==============
       - name: Create temporary environment to bypass early DB calls
         run: |
           echo "APP_ENV=ci" > .env
@@ -46,7 +44,6 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
 
-      # الآن نضع env الحقيقي
       - name: Use real CI environment
         run: cp .env.ci .env
 
@@ -66,7 +63,7 @@ jobs:
 
       - name: Wait for MySQL
         run: |
-          for i in {1..20}; do
+          for i in {1..40}; do
             if mysql -h mysql -uroot -proot -e "SELECT 1" &> /dev/null; then
               echo "MySQL is ready!"
               break
