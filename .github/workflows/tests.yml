@@ -29,9 +29,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 🔥 الخطوة الأهم: استخدام ملف env.ci
-      - name: Copy environment file
-        run: cp .env.ci .env
+      # ============== الخطوة الأهم ==============
+      - name: Create temporary environment to bypass early DB calls
+        run: |
+          echo "APP_ENV=ci" > .env
+          echo "APP_KEY=" >> .env
+          echo "DB_CONNECTION=sqlite" >> .env
+          echo "DB_DATABASE=:memory:" >> .env
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -41,6 +45,10 @@ jobs:
 
       - name: Install Composer dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
+
+      # الآن نضع env الحقيقي
+      - name: Use real CI environment
+        run: cp .env.ci .env
 
       - name: Generate Laravel APP_KEY
         run: php artisan key:generate
@@ -58,7 +66,7 @@ jobs:
 
       - name: Wait for MySQL
         run: |
-          for i in {1..15}; do
+          for i in {1..20}; do
             if mysql -h mysql -uroot -proot -e "SELECT 1" &> /dev/null; then
               echo "MySQL is ready!"
               break
