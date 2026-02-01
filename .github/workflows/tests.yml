@@ -29,15 +29,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # 🔥 الخطوة الأهم: استخدام ملف env.ci
+      - name: Copy environment file
+        run: cp .env.ci .env
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.2
-          extensions: mbstring, pdo, pdo_mysql, intl
-          coverage: none
+          extensions: mbstring, pdo, pdo_mysql
 
-      - name: Setup Composer dependencies
+      - name: Install Composer dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Generate Laravel APP_KEY
+        run: php artisan key:generate
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -50,20 +56,7 @@ jobs:
       - name: Build Frontend assets
         run: npm run build
 
-      - name: Copy CI environment
-        run: cp .env.example .env
-
-      - name: Configure Laravel environment
-        run: |
-          php artisan key:generate
-          sed -i "s/DB_CONNECTION=.*/DB_CONNECTION=mysql/" .env
-          sed -i "s/DB_HOST=.*/DB_HOST=mysql/" .env
-          sed -i "s/DB_PORT=.*/DB_PORT=3306/" .env
-          sed -i "s/DB_DATABASE=.*/DB_DATABASE=job_site/" .env
-          sed -i "s/DB_USERNAME=.*/DB_USERNAME=root/" .env
-          sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=root/" .env
-
-      - name: Wait for MySQL to be ready
+      - name: Wait for MySQL
         run: |
           for i in {1..15}; do
             if mysql -h mysql -uroot -proot -e "SELECT 1" &> /dev/null; then
