@@ -26,7 +26,6 @@ jobs:
           --health-timeout=10s
           --health-retries=10
 
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -48,40 +47,54 @@ jobs:
       - name: Install Composer without scripts
         run: composer install --no-interaction --no-scripts --prefer-dist
 
-      # TEMP environment to allow package discovering
-      - name: Create temporary safe env
+
+      # --------------------------
+      # TEMP ENV (prevents early DB connection)
+      # --------------------------
+      - name: Create temporary env
         run: |
           echo "APP_KEY=" > .env
           echo "APP_ENV=ci" >> .env
           echo "DB_CONNECTION=mysql" >> .env
-          echo "DB_HOST=mysql" >> .env
+          echo "DB_HOST=127.0.0.1" >> .env
           echo "DB_PORT=3306" >> .env
-          echo "DB_DATABASE=job_site" >> .env
-          echo "DB_USERNAME=root" >> .env
-          echo "DB_PASSWORD=root" >> .env
+          echo "DB_DATABASE=" >> .env
+          echo "DB_USERNAME=" >> .env
+          echo "DB_PASSWORD=" >> .env
+
+
+      # --------------------------
+      # Wait a bit before Laravel auto-discovers packages
+      # --------------------------
+      - name: Initial wait to avoid early DB calls
+        run: sleep 8
+
 
       - name: Generate key
         run: php artisan key:generate
 
+
       - name: Run composer scripts
         run: composer run-script post-autoload-dump
 
-      # Load final CI env
+
+      # --------------------------
+      # Load the real CI environment
+      # --------------------------
       - name: Copy CI env
         run: cp .env.ci .env
 
-      # Wait for MySQL (guaranteed)
+
+      # --------------------------
+      # NOW wait for MySQL (real connection)
+      # --------------------------
       - name: Wait for MySQL
         run: |
-          echo "Waiting for MySQL to be ready..."
           until mysql -h mysql -uroot -proot -e "SELECT 1"; do
-            echo "MySQL not ready yet..."
+            echo "Waiting for MySQL..."
             sleep 2
           done
 
-      # Extra wait for stability
-      - name: Extra DB wait
-        run: sleep 5
 
       - name: Run migrations
         run: php artisan migrate --force
