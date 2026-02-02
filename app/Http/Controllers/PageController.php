@@ -2,17 +2,45 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\PageResource;
 use App\Models\Page;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class PageController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request): AnonymousResourceCollection
     {
 
+        $sortBy = $request->query('sort_by', 'id');
+        $sortDir = $request->query('sort_dir', 'desc');
+
+        $query = Page::query();
+
+        // Search code
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'LIKE', "%$search%")
+                    ->orWhere('content', 'LIKE', "%$search%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $query->orderBy($sortBy, $sortDir);
+
+        $limit = $request->integer('limit', 10);
+        $pages = $query->paginate($limit);
+
+        // Response using Resource Collection
+        return PageResource::collection($pages)
+            ->additional(['status' => 'success']);
     }
 
     /**
