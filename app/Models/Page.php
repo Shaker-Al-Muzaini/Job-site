@@ -4,17 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+
 class Page extends Model
 {
+    /** @use HasFactory<\Database\Factories\Models\PageFactory> */
     use HasFactory;
 
-    protected $fillable = [
-        'name',
-        'description',
-        'status',
-    ];
-
-    protected $casts = [
-        'is_published' => 'boolean',
-    ];
+    protected $fillable =
+        ['name', 'description', 'status'];
 }
