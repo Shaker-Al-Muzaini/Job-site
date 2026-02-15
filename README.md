@@ -1,138 +1,44 @@
-<svg width="1000" height="950" xmlns="http://www.w3.org/2000/svg"
-font-family="Arial, sans-serif">
+# USE Clean Architecture Diagram
 
-  <!-- Background -->
-  <rect width="100%" height="100%" fill="#f8fafc"/>
+This repository contains a visual explanation of the system architecture
+based on Clean Architecture and Domain-Driven Design principles.
 
-  <!-- ===== Title ===== -->
-<text x="500" y="40"
-text-anchor="middle"
-font-size="26"
-font-weight="bold"
-fill="#111">
-Clean Architecture Flow
-</text>
+---
 
-  <!-- ===== Layers ===== -->
+## 📐 System Architecture
 
-  <!-- Presentation -->
-  <rect x="200" y="70" width="600" height="110" rx="15" fill="#1e40af"/>
-  <text x="500" y="105" fill="white" font-size="20" text-anchor="middle">
-    Presentation Layer
-  </text>
-  <text x="500" y="140" fill="white" font-size="14" text-anchor="middle">
-    API Request → Controller
-  </text>
+The following diagram shows how requests flow through the system layers:
 
-  <!-- Application -->
-  <rect x="200" y="210" width="600" height="110" rx="15" fill="#15803d"/>
-  <text x="500" y="245" fill="white" font-size="20" text-anchor="middle">
-    Application Layer
-  </text>
-  <text x="500" y="280" fill="white" font-size="14" text-anchor="middle">
-    Use Case Execution
-  </text>
+![Architecture Flow](architecture-flow.svg)
 
-  <!-- Domain -->
-  <rect x="200" y="350" width="600" height="110" rx="15" fill="#ea580c"/>
-  <text x="500" y="385" fill="white" font-size="20" text-anchor="middle">
-    Domain Layer
-  </text>
-  <text x="500" y="420" fill="white" font-size="14" text-anchor="middle">
-    Entity / Repository Interface
-  </text>
+---
 
-  <!-- Infrastructure -->
-  <rect x="200" y="490" width="600" height="110" rx="15" fill="#6d28d9"/>
-  <text x="500" y="525" fill="white" font-size="20" text-anchor="middle">
-    Infrastructure Layer
-  </text>
-  <text x="500" y="560" fill="white" font-size="14" text-anchor="middle">
-    Eloquent Repository
-  </text>
+## 🏗 Architecture Layers
 
-  <!-- Database -->
-  <rect x="200" y="630" width="600" height="110" rx="15" fill="#b91c1c"/>
-  <text x="500" y="665" fill="white" font-size="20" text-anchor="middle">
-    Database Layer
-  </text>
-  <text x="500" y="700" fill="white" font-size="14" text-anchor="middle">
-    MySQL / SQL Query
-  </text>
+### 1️⃣ Presentation Layer
+- Handles API requests
+- Controllers
+- Request validation
 
-  <!-- ===== Arrows ===== -->
+### 2️⃣ Application Layer
+- Contains Use Cases
+- Manages business workflows
 
-  <defs>
-    <marker id="arrow" markerWidth="10" markerHeight="10"
-            refX="5" refY="5" orient="auto">
-      <path d="M0,0 L10,5 L0,10 Z" fill="#111"/>
-    </marker>
-  </defs>
+### 3️⃣ Domain Layer
+- Core business logic
+- Entities and Interfaces
+- Independent from frameworks
 
-  <!-- Down arrows -->
-<line x1="500" y1="180" x2="500" y2="210"
-stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+### 4️⃣ Infrastructure Layer
+- Database implementation
+- Eloquent Repositories
+- External services
 
-<line x1="500" y1="320" x2="500" y2="350"
-stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+### 5️⃣ Database Layer
+- Data storage
+- SQL / MySQL
 
-<line x1="500" y1="460" x2="500" y2="490"
-stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+---
 
-<line x1="500" y1="600" x2="500" y2="630"
-stroke="#111" stroke-width="2" marker-end="url(#arrow)"/>
+## 🔁 Request Flow
 
-  <!-- Return Arrow -->
-<path d="M800 690 Q920 400 800 110"
-fill="none"
-stroke="#2563eb"
-stroke-width="3"
-marker-end="url(#arrow)"/>
-
-<text x="885" y="400"
-fill="#2563eb"
-font-size="14"
-transform="rotate(90 885,400)">
-Return Response
-</text>
-
-  <!-- ===== Sample Response Box ===== -->
-
-<rect x="830" y="250" width="150" height="180" rx="10"
-fill="#e5e7eb" stroke="#9ca3af"/>
-
-<text x="905" y="280" text-anchor="middle"
-font-size="13" fill="#111">
-Response
-</text>
-
-  <text x="840" y="305" font-size="11" fill="#111">
-    {
-  </text>
-
-  <text x="850" y="325" font-size="11" fill="#111">
-    "id": 7,
-  </text>
-
-  <text x="850" y="345" font-size="11" fill="#111">
-    "name": "Laptop",
-  </text>
-
-  <text x="850" y="365" font-size="11" fill="#111">
-    "status": "active"
-  </text>
-
-  <text x="840" y="385" font-size="11" fill="#111">
-    }
-  </text>
-
-  <!-- ===== Signature ===== -->
-
-<text x="980" y="920"
-text-anchor="end"
-font-size="14"
-fill="#374151">
-Designed by Shaker-Al-Muzaini
-</text>
-
-</svg>
