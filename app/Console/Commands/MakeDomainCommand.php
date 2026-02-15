@@ -92,7 +92,6 @@ class MakeDomainCommand extends Command
         }
     }
 
-    /* ==================== DOMAIN LAYER ==================== */
 
     private function generateDomainFiles(string $name): void
     {
