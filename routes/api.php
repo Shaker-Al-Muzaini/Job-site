@@ -11,4 +11,4 @@ Route::get('/user', function (Request $request) {
 // Page domain routes
 
 // Page domain routes
-Route::apiResource('pages', \App\Presentation\Http\Controllers\Page\PageController::class);
+Route::apiResource('pages', PageController::class);
