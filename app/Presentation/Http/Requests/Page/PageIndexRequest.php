@@ -14,10 +14,10 @@ class PageIndexRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'search'   => 'nullable|string|max:255',
-            'sort_by'  => 'nullable|string|in:id,name,created_at',
+            'search' => 'nullable|string|max:255',
+            'sort_by' => 'nullable|string|in:id,name,created_at',
             'sort_dir' => 'nullable|string|in:asc,desc',
-            'limit'    => 'nullable|integer|min:1|max:100',
+            'limit' => 'nullable|integer|min:1|max:100',
         ];
     }
 }

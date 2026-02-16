@@ -9,7 +9,7 @@ class GetPageListUseCase
 {
     public function __construct(private PageRepositoryInterface $repo) {}
 
-    public function execute(PageSearchCriteria $criteria)
+    public function execute(PageSearchCriteria $criteria): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         return $this->repo->paginate($criteria);
     }

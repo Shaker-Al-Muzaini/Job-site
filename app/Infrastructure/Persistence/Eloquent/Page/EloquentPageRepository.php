@@ -15,7 +15,7 @@ class EloquentPageRepository implements PageRepositoryInterface
         return Page::query()
             ->when($criteria->search, function ($q) use ($criteria) {
                 $q->where('name', 'LIKE', "%{$criteria->search}%")
-                  ->orWhere('description', 'LIKE', "%{$criteria->search}%");
+                    ->orWhere('description', 'LIKE', "%{$criteria->search}%");
             })
             ->orderBy($criteria->sortBy, $criteria->sortDir)
             ->paginate($criteria->limit);
@@ -39,6 +39,7 @@ class EloquentPageRepository implements PageRepositoryInterface
         }
 
         $model->update($data->toArray());
+
         return $model;
     }
 

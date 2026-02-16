@@ -2,17 +2,19 @@
 
 namespace App\Presentation\Http\Controllers\Page;
 
-use App\Application\Page\UseCases\GetPageListUseCase;
-use App\Application\Page\UseCases\GetPageDetailUseCase;
 use App\Application\Page\UseCases\CreatePageUseCase;
-use App\Application\Page\UseCases\UpdatePageUseCase;
 use App\Application\Page\UseCases\DeletePageUseCase;
+use App\Application\Page\UseCases\GetPageDetailUseCase;
+use App\Application\Page\UseCases\GetPageListUseCase;
+use App\Application\Page\UseCases\UpdatePageUseCase;
 use App\Domain\Page\ValueObjects\PageSearchCriteria;
 use App\Presentation\Http\Requests\Page\PageIndexRequest;
 use App\Presentation\Http\Requests\Page\PageStoreRequest;
 use App\Presentation\Http\Requests\Page\PageUpdateRequest;
 use App\Presentation\Http\Resources\Page\PageResource;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PageController
 {
@@ -29,17 +31,18 @@ class PageController
 
         return response()->json([
             'status' => 'success',
-            'data'   => PageResource::collection($items),
-            'meta'   => [
+            'data' => PageResource::collection($items),
+            'meta' => [
                 'current_page' => $items->currentPage(),
-                'last_page'    => $items->lastPage(),
-                'total'        => $items->total(),
+                'last_page' => $items->lastPage(),
+                'total' => $items->total(),
             ],
         ]);
     }
 
     public function show(int $id, GetPageDetailUseCase $useCase): JsonResponse
     {
+
         $item = $useCase->execute($id);
 
         if (! $item) {
@@ -48,32 +51,77 @@ class PageController
 
         return response()->json([
             'status' => 'success',
-            'data'   => new PageResource($item),
+            'data' => new PageResource($item),
         ]);
     }
 
     public function store(PageStoreRequest $request, CreatePageUseCase $useCase): JsonResponse
     {
-        $item = $useCase->execute($request->validated());
 
-        return response()->json([
-            'status' => 'success',
-            'data'   => new PageResource($item),
-        ], 201);
+        DB::beginTransaction();
+
+        try {
+            $item = $useCase->execute($request->validated());
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => new PageResource($item),
+            ], 201);
+
+        } catch (\Throwable $e) {
+
+            DB::rollBack();
+
+            Log::error('Page store failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Something went wrong',
+            ], 500);
+        }
     }
 
     public function update(int $id, PageUpdateRequest $request, UpdatePageUseCase $useCase): JsonResponse
     {
-        $item = $useCase->execute($id, $request->validated());
+        DB::beginTransaction();
 
-        if (! $item) {
-            return response()->json(['status' => 'error', 'message' => 'Page not found'], 404);
+        try {
+            $item = $useCase->execute($id, $request->validated());
+
+            if (! $item) {
+                DB::rollBack();
+
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Page not found',
+                ], 404);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => new PageResource($item),
+            ]);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            Log::error('Page update failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Something went wrong',
+            ], 500);
         }
-
-        return response()->json([
-            'status' => 'success',
-            'data'   => new PageResource($item),
-        ]);
     }
 
     public function destroy(int $id, DeletePageUseCase $useCase): JsonResponse

@@ -8,7 +8,7 @@ class GetPageDetailUseCase
 {
     public function __construct(private PageRepositoryInterface $repo) {}
 
-    public function execute(int $id)
+    public function execute(int $id): ?\Illuminate\Database\Eloquent\Model
     {
         return $this->repo->find($id);
     }

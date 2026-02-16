@@ -9,7 +9,7 @@ class UpdatePageUseCase
 {
     public function __construct(private PageRepositoryInterface $repo) {}
 
-    public function execute(int $id, array $payload)
+    public function execute(int $id, array $payload): ?\Illuminate\Database\Eloquent\Model
     {
         $data = PageData::fromArray($payload);
         return $this->repo->update($id, $data);

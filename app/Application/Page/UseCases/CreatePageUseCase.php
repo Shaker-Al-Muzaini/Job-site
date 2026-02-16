@@ -9,7 +9,7 @@ class CreatePageUseCase
 {
     public function __construct(private PageRepositoryInterface $repo) {}
 
-    public function execute(array $payload)
+    public function execute(array $payload): \Illuminate\Database\Eloquent\Model
     {
         $data = PageData::fromArray($payload);
         return $this->repo->create($data);
