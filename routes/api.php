@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
-})->middleware('auth:sanctum');
+})->middleware('Auth:sanctum');
 
 // Login   routes
 Route::post('login', [LoginApiController::class,'login']);
