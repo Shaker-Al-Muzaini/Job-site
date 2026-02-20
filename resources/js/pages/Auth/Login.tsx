@@ -4,13 +4,12 @@ import React from 'react';
 
 export default function Login() {
     const form = useForm({ email: '', password: '' });
-    const { errors } = usePage().props as any; // أخطاء قادمة من Inertia
+    const { errors } = usePage<LoginPageProps>().props;
 
     function submit(e: React.FormEvent) {
         e.preventDefault();
         form.post('/login');
     }
-
     return (
         <AuthLayout>
             <div className="fixed inset-0 flex items-center justify-center bg-gray-900 overflow-hidden">
