@@ -8,6 +8,7 @@ export default function Login() {
 
     function submit(e: React.FormEvent) {
         e.preventDefault();
+
         form.post('/login');
     }
     return (
