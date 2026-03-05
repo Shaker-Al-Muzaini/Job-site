@@ -50,6 +50,7 @@ RUN npm install && npm run build
 
 # Copy Nginx configuration (CRITICAL STEP)
 COPY nginx.conf /etc/nginx/sites-available/default
+RUN ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
 # Permissions
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache && \
