@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     python3-venv \
     libpq-dev \
+    libpq5 \
     && curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp \
     && chmod a+rx /usr/local/bin/yt-dlp
 
@@ -30,36 +31,34 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www
 
-# Copy existing application directory contents
-COPY . /var/www
-
-# Install Composer dependencies
-RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts
-
-# Set up Python virtual environment and install requirements
-RUN python3 -m venv /var/www/venv
-RUN /var/www/venv/bin/pip install --no-cache-dir -r requirements.txt
-
-# Install Node.js and build assets
+# Install Node.js
 RUN curl -sL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs
 
-# Copy dependency files first to leverage Docker cache
-COPY package*.json ./
-RUN npm install
+# Copy all files first
+COPY . /var/www
 
-# Copy the rest and build
-COPY . .
-RUN npm run build
+# Install Composer dependencies (with --no-scripts to avoid DB check during build)
+RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts
 
-# Final permissions
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
-RUN chmod +x /var/www/docker-entrypoint.sh
+# Set up Python virtual environment
+RUN python3 -m venv /var/www/venv && \
+    /var/www/venv/bin/pip install --no-cache-dir -r requirements.txt
+
+# Install NPM dependencies and build assets
+RUN npm install && npm run build
+
+# Copy Nginx configuration (CRITICAL STEP)
+COPY nginx.conf /etc/nginx/sites-available/default
+
+# Permissions
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache && \
+    chmod +x /var/www/docker-entrypoint.sh
 
 # Expose port 80
 EXPOSE 80
 
-# Environment variables for Python to use the venv
+# Env for Python
 ENV PATH="/var/www/venv/bin:$PATH"
 
 ENTRYPOINT ["/var/www/docker-entrypoint.sh"]
