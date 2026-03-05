@@ -42,14 +42,17 @@ RUN /var/www/venv/bin/pip install --no-cache-dir -r requirements.txt
 
 # Install Node.js and build assets
 RUN curl -sL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs && \
-    npm install && \
-    npm run build
+    apt-get install -y nodejs
 
-# Copy Nginx configuration
-COPY nginx.conf /etc/nginx/sites-available/default
+# Copy dependency files first to leverage Docker cache
+COPY package*.json ./
+RUN npm install
 
-# Permissions
+# Copy the rest and build
+COPY . .
+RUN npm run build
+
+# Final permissions
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 RUN chmod +x /var/www/docker-entrypoint.sh
 
