@@ -1,0 +1,53 @@
+services:
+    - type: web
+      name: job-site-app
+      env: docker
+      plan: free
+      region: oregon
+      healthCheckPath: /
+      envVars:
+          - key: APP_ENV
+            value: production
+          - key: APP_DEBUG
+            value: 'false'
+          - key: APP_URL
+            fromContext: git.url
+          - key: DB_CONNECTION
+            value: pgsql
+          - key: DB_HOST
+            fromDatabase:
+                name: job-site-db
+                property: host
+          - key: DB_PORT
+            fromDatabase:
+                name: job-site-db
+                property: port
+          - key: DB_DATABASE
+            fromDatabase:
+                name: job-site-db
+                property: database
+          - key: DB_USERNAME
+            fromDatabase:
+                name: job-site-db
+                property: user
+          - key: DB_PASSWORD
+            fromDatabase:
+                name: job-site-db
+                property: password
+          - key: YT_DLP_PATH
+            value: yt-dlp
+          - key: FFMPEG_PATH
+            value: ffmpeg
+          - key: FFPROBE_PATH
+            value: ffprobe
+          - key: PYTHON_COMMAND
+            value: python3
+          - key: WHISPER_PATH
+            value: whisper
+          - key: EDGE_TTS_PATH
+            value: edge-tts
+
+databases:
+    - name: job-site-db
+      plan: free
+      region: oregon

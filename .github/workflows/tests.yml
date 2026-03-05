@@ -1,0 +1,79 @@
+name: CI Tests
+
+on:
+  push:
+    branches: [develop, main, master, workos]
+  pull_request:
+    branches: [develop, main, master, workos]
+
+jobs:
+  laravel-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: job_site
+        options: >-
+          --health-cmd="mysqladmin ping -uroot -proot --silent"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Create temporary environment to bypass early DB calls
+        run: |
+          echo "APP_ENV=ci" > .env
+          echo "APP_KEY=" >> .env
+          echo "DB_CONNECTION=sqlite" >> .env
+          echo "DB_DATABASE=:memory:" >> .env
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          extensions: mbstring, pdo, pdo_mysql
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Use real CI environment
+        run: cp .env.ci .env
+
+      - name: Generate Laravel APP_KEY
+        run: php artisan key:generate
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install NPM dependencies
+        run: npm install
+
+      - name: Build Frontend assets
+        run: npm run build
+
+      - name: Wait for MySQL
+        run: |
+          for i in {1..40}; do
+            if mysql -h 127.0.0.1 -uroot -proot -e "SELECT 1" &> /dev/null; then
+              echo "MySQL is ready!"
+              break
+            fi
+            echo "Waiting for MySQL..."
+            sleep 2
+          done
+
+      - name: Run Laravel migrations
+        run: php artisan migrate --force
+
+      - name: Run Tests
+        run: php artisan test
