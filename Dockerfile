@@ -34,7 +34,7 @@ WORKDIR /var/www
 COPY . /var/www
 
 # Install Composer dependencies
-RUN composer install --no-interaction --optimize-autoloader --no-dev
+RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts
 
 # Set up Python virtual environment and install requirements
 RUN python3 -m venv /var/www/venv
