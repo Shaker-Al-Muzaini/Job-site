@@ -13,7 +13,7 @@ storage/framework/sessions/*
 storage/framework/views/*
 storage/logs/*
 Dockerfile
-nginx.conf
+#nginx.conf
 render.yaml
 .env
 npm-debug.log
