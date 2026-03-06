@@ -13,7 +13,7 @@ services:
           - key: APP_KEY
             value: 'base64:Ee7zkz/TaBDHCxNU2ND4UsfsSr4SPnI0KhuMVFXa6+Y='
           - key: APP_URL
-            value: http://localhost
+            value: https://job-site-app-hmzz.onrender.com
           - key: DB_CONNECTION
             value: pgsql
           - key: DB_HOST
