@@ -5,13 +5,17 @@ services:
       plan: free
       region: oregon
       healthCheckPath: /healthz
+      # Run migrations BEFORE the new version starts
+      preDeployCommand: 'php artisan migrate --force'
       envVars:
           - key: APP_ENV
             value: production
           - key: APP_DEBUG
             value: 'false'
+          - key: APP_KEY
+            value: 'base64:Ee7zkz/TaBDHCxNU2ND4UsfsSr4SPnI0KhuMVFXa6+Y='
           - key: APP_URL
-            value: http://localhost # سيقوم Render بتحديث هذا تلقائياً أو يمكنك تغييره لاحقاً
+            value: http://localhost
           - key: DB_CONNECTION
             value: pgsql
           - key: DB_HOST
