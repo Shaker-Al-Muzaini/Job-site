@@ -4,7 +4,7 @@ services:
       env: docker
       plan: free
       region: oregon
-      healthCheckPath: /healthz
+      healthCheckPath: /health.html
       # Run migrations BEFORE the new version starts
       preDeployCommand: 'php artisan migrate --force'
       envVars:
