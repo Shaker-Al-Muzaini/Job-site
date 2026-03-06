@@ -31,6 +31,10 @@ Route::get('/profile', [RegisterController::class, 'showProfile'])->name('profil
 Route::post('/login', LoginController::class);
 
 
+Route::get('/healthz', function () {
+    return 'OK';
+});
+
 Route::get('/dub', [DubController::class, 'index']);
 Route::post('/dub/step1', [DubController::class, 'step1Download'])->name('dub.step1');
 Route::post('/dub/step2', [DubController::class, 'step2Audio'])->name('dub.step2');

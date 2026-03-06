@@ -24,12 +24,16 @@ php artisan storage:link
 
 # Use Render's PORT or default to 80
 PORT=${PORT:-80}
+echo "Starting Nginx on port $PORT..."
 
 # Update Nginx config to listen on the correct PORT
 sed -i "s/listen 80;/listen ${PORT};/g" /etc/nginx/sites-available/default
+sed -i "s/listen 80;/listen ${PORT};/g" /etc/nginx/sites-enabled/default
 
 # Start PHP-FPM in background
+echo "Starting PHP-FPM..."
 php-fpm -D
 
 # Start Nginx in foreground
+echo "Starting Nginx..."
 nginx -g "daemon off;"
