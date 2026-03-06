@@ -19,10 +19,10 @@ sed -i "s/listen 80;/listen ${PORT};/g" /etc/nginx/sites-enabled/default
 php artisan config:clear || true
 php artisan view:clear || true
 
-# Run migrations (Free tier work-around)
-php artisan migrate --force
+php artisan migrate --force || true
 
 echo "Starting services..."
+
 
 # Start PHP-FPM in background
 php-fpm -D
