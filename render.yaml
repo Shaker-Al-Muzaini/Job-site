@@ -5,8 +5,6 @@ services:
       plan: free
       region: oregon
       healthCheckPath: /health.html
-      # Run migrations BEFORE the new version starts
-      preDeployCommand: 'php artisan migrate --force'
       envVars:
           - key: APP_ENV
             value: production
