@@ -35,20 +35,28 @@ WORKDIR /var/www
 RUN curl -sL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs
 
-# Copy all files first
-COPY . /var/www
+# --- OPTIMIZATION: LAYER CACHING ---
 
-# Install Composer dependencies (with --no-scripts to avoid DB check during build)
+# 1. Composer
+COPY composer.json composer.lock ./
 RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts
 
-# Set up Python virtual environment
+# 2. Python
+COPY requirements.txt ./
 RUN python3 -m venv /var/www/venv && \
     /var/www/venv/bin/pip install --no-cache-dir -r requirements.txt
 
-# Install NPM dependencies and build assets
-RUN npm install && npm run build
+# 3. NPM
+COPY package.json package-lock.json ./
+RUN npm install
 
-# Copy Nginx configuration (CRITICAL STEP)
+# 4. Copy rest of the code
+COPY . /var/www
+
+# Build assets
+RUN npm run build
+
+# Copy Nginx configuration
 COPY nginx.conf /etc/nginx/sites-available/default
 RUN ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
