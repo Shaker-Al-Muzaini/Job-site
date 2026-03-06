@@ -41,10 +41,7 @@ RUN curl -sL https://deb.nodesource.com/setup_20.x | bash - && \
 COPY composer.json composer.lock ./
 RUN composer install --no-interaction --optimize-autoloader --no-dev --no-scripts
 
-# 2. Python
-COPY requirements.txt ./
-RUN python3 -m venv /var/www/venv && \
-    /var/www/venv/bin/pip install --no-cache-dir -r requirements.txt
+
 
 # 3. NPM
 COPY package.json package-lock.json ./
