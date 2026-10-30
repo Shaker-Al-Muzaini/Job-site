@@ -1,4 +1,4 @@
-# USE Clean Architecture Diagram
+# USE Clean Architecture Diagram 
 
 This repository contains a visual explanation of the system architecture
 based on Clean Architecture and Domain-Driven Design principles.
